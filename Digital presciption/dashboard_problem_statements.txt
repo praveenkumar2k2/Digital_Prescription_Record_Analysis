@@ -1,0 +1,10 @@
+
+DASHBOARD PROBLEM STATEMENTS (MATPLOTLIB)
+
+1. Which medicines are prescribed most frequently?
+2. Doctor-wise prescription volume comparison.
+3. Gender-wise prescription distribution.
+4. Age group vs number of prescriptions.
+5. Identify doctors issuing unusually high prescriptions.
+6. Daily prescription trend over time.
+7. Missing data impact analysis before vs after cleaning.
