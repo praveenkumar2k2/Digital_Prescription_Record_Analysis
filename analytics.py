@@ -24,10 +24,23 @@ def most_prescribed_medicines():
     LIMIT 10;
     """
     df = pd.read_sql(query, conn)
+    
+    total_sum = df['total'].sum()
+    df['percentage'] = (df['total'] / total_sum) * 100
 
     plt.figure(figsize=(8,6))
-    plt.barh(df['medicine_name'], df['total'])
+    bars = plt.barh(df['medicine_name'], df['total'])
     plt.gca().invert_yaxis()
+    
+    # Add percentage labels on bars
+    for i, bar in enumerate(bars):
+        plt.text(
+            bar.get_width(),
+            bar.get_y() + bar.get_height()/2,
+            f"{df['percentage'][i]:.1f}%",
+            va='center'
+        )
+        
     plt.title("Top 10 Most Prescribed Medicines")
     plt.xlabel("Number of Prescriptions")
     plt.show()
@@ -53,7 +66,7 @@ def doctor_volume():
     conn.close()
     
     
-#Gender Distribution → Pie Chart
+# Gender-wise Prescription Distribution → Pie Chart
 def gender_distribution():
     conn = get_connection()
     query = """
@@ -102,7 +115,7 @@ def age_group_analysis():
     conn.close()
 
 
-#Anomaly Detection → Box Plot 
+# Detect Doctors with Unusually High Prescriptions → Box Plot 
 def anomaly_detection():
     conn = get_connection()
     query = """
@@ -128,7 +141,7 @@ def anomaly_detection():
     conn.close()
 
 
-# Daily Trends → Line Chart
+# Daily Prescription Trends → Line Chart
 def daily_trend():
     conn = get_connection()
     query = """
@@ -145,17 +158,33 @@ def daily_trend():
     plt.show()
     conn.close()
 
-# Data Quality → Side-by-Side Bar Chart (Raw vs Clean)
+# Data Quality Check → Side-by-Side Bar Chart (Raw vs Clean)
+
 def data_quality():
     raw_count = len(pd.read_csv("D:/databricks_projects/P1_digital_prescription_project/data/prescriptions_1000.csv"))
 
     conn = get_connection()
     clean_count = pd.read_sql("SELECT COUNT(*) as total FROM prescriptions;", conn)['total'][0]
 
+    values = [raw_count, clean_count]
+    total_sum = sum(values)
+    percentages = [(v / total_sum) * 100 for v in values]
+
     plt.figure(figsize=(5,5))
-    plt.bar(["Raw Data", "Clean Data"], [raw_count, clean_count])
+    bars = plt.bar(["Raw Data", "Clean Data"], values)
+
+    # Add percentage above bars
+    for i, bar in enumerate(bars):
+        plt.text(
+            bar.get_x() + bar.get_width()/2,
+            bar.get_height(),
+            f"{percentages[i]:.1f}%",
+            ha='center'
+        )
+
     plt.title("Data Quality Improvement")
     plt.ylabel("Number of Records")
     plt.show()
 
     conn.close()
+
