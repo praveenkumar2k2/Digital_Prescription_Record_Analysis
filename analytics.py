@@ -11,6 +11,7 @@ def get_connection():
         database="digital_prescription_db"
     )
 
+# Most Prescribed Medicines → Horizontal Bar Chart
 
 def most_prescribed_medicines():
     conn = get_connection()
@@ -23,14 +24,16 @@ def most_prescribed_medicines():
     LIMIT 10;
     """
     df = pd.read_sql(query, conn)
-    plt.figure()
-    plt.bar(df['medicine_name'], df['total'])
-    plt.xticks(rotation=45)
-    plt.title("Most Frequently Prescribed Medicines")
+
+    plt.figure(figsize=(8,6))
+    plt.barh(df['medicine_name'], df['total'])
+    plt.gca().invert_yaxis()
+    plt.title("Top 10 Most Prescribed Medicines")
+    plt.xlabel("Number of Prescriptions")
     plt.show()
     conn.close()
 
-
+# Doctor Volume → Pie Chart (Top 5 Only)
 def doctor_volume():
     conn = get_connection()
     query = """
@@ -39,17 +42,18 @@ def doctor_volume():
     JOIN doctors d ON p.doctor_id = d.doctor_id
     GROUP BY d.doctor_name
     ORDER BY total DESC
-    LIMIT 10;
+    LIMIT 5;
     """
     df = pd.read_sql(query, conn)
-    plt.figure()
-    plt.bar(df['doctor_name'], df['total'])
-    plt.xticks(rotation=45)
-    plt.title("Doctor-wise Prescription Volume")
+
+    plt.figure(figsize=(6,6))
+    plt.pie(df['total'], labels=df['doctor_name'], autopct='%1.1f%%')
+    plt.title("Top 5 Doctors by Prescription Volume")
     plt.show()
     conn.close()
-
-
+    
+    
+#Gender Distribution → Pie Chart
 def gender_distribution():
     conn = get_connection()
     query = """
@@ -59,13 +63,15 @@ def gender_distribution():
     GROUP BY p.gender;
     """
     df = pd.read_sql(query, conn)
-    plt.figure()
-    plt.bar(df['gender'], df['total'])
+
+    plt.figure(figsize=(5,5))
+    plt.pie(df['total'], labels=df['gender'], autopct='%1.1f%%')
     plt.title("Gender-wise Prescription Distribution")
     plt.show()
     conn.close()
 
 
+# Age Group → Donut Chart
 def age_group_analysis():
     conn = get_connection()
     query = """
@@ -82,13 +88,21 @@ def age_group_analysis():
     GROUP BY age_group;
     """
     df = pd.read_sql(query, conn)
-    plt.figure()
-    plt.bar(df['age_group'], df['total_prescriptions'])
-    plt.title("Age Group vs Number of Prescriptions")
+
+    plt.figure(figsize=(6,6))
+    plt.pie(df['total_prescriptions'], labels=df['age_group'], autopct='%1.1f%%')
+    
+    # Donut effect
+    centre_circle = plt.Circle((0,0),0.70,fc='white')
+    fig = plt.gcf()
+    fig.gca().add_artist(centre_circle)
+
+    plt.title("Age Group Distribution")
     plt.show()
     conn.close()
 
 
+#Anomaly Detection → Box Plot 
 def anomaly_detection():
     conn = get_connection()
     query = """
@@ -98,13 +112,23 @@ def anomaly_detection():
     GROUP BY d.doctor_name;
     """
     df = pd.read_sql(query, conn)
+
+    plt.figure(figsize=(6,5))
+    plt.boxplot(df['total_prescriptions'])
+    plt.title("Prescription Distribution (Outlier Detection)")
+    plt.ylabel("Number of Prescriptions")
+    plt.show()
+
     threshold = df['total_prescriptions'].mean() + 2 * df['total_prescriptions'].std()
     unusual = df[df['total_prescriptions'] > threshold]
+
     print("Doctors issuing unusually high prescriptions:")
     print(unusual)
+
     conn.close()
 
 
+# Daily Trends → Line Chart
 def daily_trend():
     conn = get_connection()
     query = """
@@ -121,15 +145,17 @@ def daily_trend():
     plt.show()
     conn.close()
 
-
+# Data Quality → Side-by-Side Bar Chart (Raw vs Clean)
 def data_quality():
     raw_count = len(pd.read_csv("D:/databricks_projects/P1_digital_prescription_project/data/prescriptions_1000.csv"))
 
     conn = get_connection()
     clean_count = pd.read_sql("SELECT COUNT(*) as total FROM prescriptions;", conn)['total'][0]
 
-    plt.figure()
-    plt.bar(["Raw", "Clean"], [raw_count, clean_count])
+    plt.figure(figsize=(5,5))
+    plt.bar(["Raw Data", "Clean Data"], [raw_count, clean_count])
     plt.title("Data Quality Improvement")
+    plt.ylabel("Number of Records")
     plt.show()
+
     conn.close()
